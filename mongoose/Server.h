@@ -7,9 +7,12 @@
 #include "Request.h"
 #include "Response.h"
 #include "Controller.h"
+#ifndef NO_WEBSOCKET
 #include "WebSocket.h"
 #include "WebSockets.h"
+#endif
 #include "Mutex.h"
+#include "Sessions.h"
 
 using namespace std;
 
@@ -52,7 +55,7 @@ namespace Mongoose
              *
              * @param struct mg_connection* the mongoose connection
              */
-            int _beginRequest(struct mg_connection *conn, const struct mg_request_info *request_info);
+            int _handleRequest(struct mg_connection *conn);
 
             /**
              * Internally used to process a file upload
@@ -67,7 +70,7 @@ namespace Mongoose
              *
              * @param struct mg_connection* the mongoose connection with the client
              */
-            void _webSocketReady(struct mg_connection *conn, const struct mg_request_info *request);
+            void _webSocketReady(struct mg_connection *conn);
 
             /**
              * Handles web sockets data
@@ -79,7 +82,7 @@ namespace Mongoose
              *
              * @return int if we have to keep the connection opened
              */
-            int _webSocketData(struct mg_connection *conn, int flags, char *data, size_t data_len);
+            int _webSocketData(struct mg_connection *conn, string data);
 
             /**
              * Process the request by controllers
@@ -89,7 +92,7 @@ namespace Mongoose
              * @return Response the response if one of the controllers can handle it,
              *         NULL else
              */
-            Response *beginRequest(Request &request);
+            Response *handleRequest(Request &request);
 
             /**
              * Sets a mongoose extra option
@@ -99,26 +102,42 @@ namespace Mongoose
              */
             void setOption(string key, string value);
 
+#ifndef NO_WEBSOCKET
             /**
              * Returns the WebSockets container
              *
              * @return WebSockets the web sockets container
              */
             WebSockets &getWebSockets();
+#endif
 
             /**
              * Print statistics
              */
             void printStats();
 
+            /**
+             * Polls the server
+             */
+            void poll();
+
+            /**
+             * Does the server handles url?
+             */
+            bool handles(string method, string url);
+
         protected:
+            volatile bool stopped;
+            volatile bool destroyed;
+            Sessions sessions;
             Mutex mutex;
             map<string, string> optionsMap;
             map<struct mg_connection*, Request *> currentRequests;
-            struct mg_context *ctx;
-            const char **options;
+            struct mg_server *server;
 
+#ifndef NO_WEBSOCKET
             WebSockets websockets;
+#endif
 
             vector<Controller *> controllers;
 
@@ -126,6 +145,6 @@ namespace Mongoose
             int requests;
             int startTime;
     };
-};
+}
 
 #endif

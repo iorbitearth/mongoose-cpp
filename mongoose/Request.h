@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 #ifdef ENABLE_REGEX_URL
-    #include <regex>
+#include <regex>
 #endif
 #include <mongoose.h>
 #include "UploadFile.h"
@@ -21,7 +21,7 @@ namespace Mongoose
     class Request
     {
         public:
-            Request(struct mg_connection *connection, const struct mg_request_info *request);
+            Request(struct mg_connection *connection);
 
             /**
              * Sends a given response to the client
@@ -38,6 +38,14 @@ namespace Mongoose
              * @return bool true if the param is present, false else
              */
             bool hasVariable(string key);
+
+            /**
+             * Get All variable present in GET or POST data
+             *
+             * @brief getAllVariable
+             * @return map<string, string> with all variables
+             */
+            map<string, string> getAllVariable();
 
             /**
              * Get the value for a certain variable
@@ -68,13 +76,16 @@ namespace Mongoose
              */
             string getCookie(string key, string fallback = "");
 
+
+            string getHeaderKeyValue(const std::string& header_key);
+
             /**
              * Handle uploads to the target directory
              *
              * @param string the target directory
              * @param path the posted file path
              */
-            void upload(string targetDirectory);
+            void handleUploads();
 
             string getUrl();
             string getMethod();
@@ -95,13 +106,8 @@ namespace Mongoose
             string method;
             string url;
             string data;
-#ifdef ENABLE_REGEX_URL
-            string key;
-            smatch matches;
-#endif
             struct mg_connection *connection;
-            const struct mg_request_info *request;
     };
-};
+}
 
 #endif

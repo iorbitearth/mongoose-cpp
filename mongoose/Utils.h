@@ -10,9 +10,10 @@ namespace Mongoose
     class Utils
     {
         public:
-            string htmlEntities(string data);
+            static string htmlEntities(string data);
+            static void sleep(int ms);
     };
-};
+}
 
 #endif
 

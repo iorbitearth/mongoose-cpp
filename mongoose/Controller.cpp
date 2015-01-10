@@ -7,7 +7,7 @@ using namespace std;
 namespace Mongoose
 {
     Controller::Controller() 
-        : prefix(""), server(NULL)
+        : sessions(NULL), server(NULL), prefix("")
     {
     }
 
@@ -38,25 +38,33 @@ namespace Mongoose
 
         routes.clear();
     }
+            
+    bool Controller::handles(string method, string url)
+    { 
+        string key = method + ":" + url;
+
+        return (routes.find(key) != routes.end());
+    }
 
     Response *Controller::process(Request &request)
     {
         Response *response = NULL;
 
 #ifdef ENABLE_REGEX_URL
-        map<string, RequestHandlerBase *>::iterator it;
+        map<string, RequestHandlerBase *>::iterator it; 
         for (it=routes.begin(); it!=routes.end(); it++) {
             if (request.match(it->first)){
               response = it->second->process(request);
               break;
-            }
-        }
+            }   
+        }   
 #else
         string key = request.getMethod() + ":" + request.getUrl();
         if (routes.find(key) != routes.end()) {
             response = routes[key]->process(request);
         }
-#endif        
+#endif
+        
         return response;
     }
             
@@ -88,6 +96,7 @@ namespace Mongoose
     {
         string key = httpMethod + ":" + prefix + route;
         routes[key] = handler;
+        urls.push_back(prefix + route);
     }
 
     void Controller::dumpRoutes()
@@ -109,4 +118,19 @@ namespace Mongoose
 
         return response;
     }
-};
+
+    vector<string> Controller::getUrls()
+    {
+        return urls;
+    }
+
+    Session &Controller::getSession(Request &request, Response &response)
+    {
+        return sessions->get(request, response);
+    }
+
+    void Controller::setSessions(Sessions *sessions_)
+    {
+        sessions = sessions_;
+    }
+}

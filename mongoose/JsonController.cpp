@@ -14,6 +14,6 @@ namespace Mongoose
 
         // RFC 4627
         // Json content type is application/json
-        response.setHeader("Content-type", "application/json");
+        response.setHeader("Content-Type", "application/json");
     }            
-};
+}

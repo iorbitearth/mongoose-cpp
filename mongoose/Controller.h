@@ -7,6 +7,7 @@
 #include "RequestHandler.h"
 #include "StreamResponse.h"
 #include "WebSocket.h"
+#include "Sessions.h"
 
 using namespace std;
 
@@ -18,7 +19,7 @@ using namespace std;
 
 /**
  * A controller is a module that respond to requests
- * 
+ *
  * You can override the preProcess, process and postProcess to answer to
  * the requests
  */
@@ -52,11 +53,11 @@ namespace Mongoose
              *
              * @param Request the request
              *
-             * @return Response the created response, or NULL if the controller 
+             * @return Response the created response, or NULL if the controller
              *         does not handle this request
              */
             virtual Response *process(Request &request);
-            
+
             /**
              * Called after a request is processed, if the controller responded
              *
@@ -86,14 +87,14 @@ namespace Mongoose
             /**
              * Called when a new websocket connection is ready
              *
-             * @param WebSocket the instance of the connection 
+             * @param WebSocket the instance of the connection
              */
             virtual void webSocketReady(WebSocket *websocket);
 
             /**
              * Called when data arrive in a websocket connection
              *
-             * @param WebSocket the instance of the connection 
+             * @param WebSocket the instance of the connection
              * @param string the data arriving
              */
             virtual void webSocketData(WebSocket *websocket, string data);
@@ -125,11 +126,33 @@ namespace Mongoose
              */
             virtual Response *serverInternalError(string message);
 
+            /**
+             * Gets the session for a request/response
+             *
+             * @param Request the request
+             * @param Response the response
+             *
+             * @return Session the session for the request/response
+             */
+            Session &getSession(Request &request, Response &response);
+
+            /**
+             * Sets the sessions
+             *
+             * @param Sessions* the pointer to the sessions jar
+             */
+            void setSessions(Sessions *sessions);
+
+            virtual bool handles(string method, string url);
+            vector<string> getUrls();
+
         protected:
+            Sessions *sessions;
             Server *server;
             string prefix;
             map<string, RequestHandlerBase*> routes;
+            vector<string> urls;
     };
-};
+}
 
 #endif
